@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<User>
+
+  <!-- 取得 -->
+  <Get>
+    <Statement>
+      <![CDATA[
+        SELECT  *
+          FROM  [dbo].[User]
+         WHERE  [login_id] = @login_id AND [password] = @password
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="login_id" Type="nvarchar" Size="15" />
+      <Input Name="password" Type="nvarchar" Size="15"/>
+    </Parameter>
+  </Get>
+
+  <Get_login_id>
+    <Statement>
+      <![CDATA[
+        SELECT  *
+          FROM  [dbo].[User]
+         WHERE  [login_id] = @login_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="login_id" Type="nvarchar" Size="15" />
+    </Parameter>
+  </Get_login_id>
+
+  <!-- 登録 -->
+  <Insert>
+    <Statement>
+      <![CDATA[
+        INSERT INTO [dbo].[User] ([name], [login_id], [password])
+             VALUES (@name, @login_id, @password)
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="name" Type="nvarchar" Size="50"/>
+      <Input Name="login_id" Type="nvarchar" Size="15"/>
+      <Input Name="password" Type="nvarchar" Size="15"/>
+    </Parameter>
+  </Insert>
+  
+  <!-- 更新 -->
+  <Update>
+    <Statement>
+      <![CDATA[
+        UPDATE [dbo].[User]
+           SET [name] = @name, [login_id] = @login_id, [password] = @password, [date_changed] = getdate()
+         WHERE [user_id] = @user_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="user_id" Type="int"/>
+      <Input Name="name" Type="nvarchar" Size="50"/>
+      <Input Name="login_id" Type="nvarchar" Size="15"/>
+      <Input Name="password" Type="nvarchar" Size="15"/>
+    </Parameter>
+  </Update>
+  
+  <!-- 削除 -->
+  <Delete>
+    <Statement>
+      <![CDATA[
+        UPDATE [dbo].[User]
+           SET [delete_flg] = '1'
+         WHERE [user_id] = @user_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="user_id" Type="int"/>
+    </Parameter>
+  </Delete>
+
+</User>

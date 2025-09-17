@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Forum>
+  
+  <!-- 登録 -->
+  <Insert>
+    <Statement>
+      <![CDATA[
+        INSERT INTO [dbo].[Forum] ([user_id], [forum_title], [forum_text])
+             VALUES (@user_id, @forum_title, @forum_text)
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="user_id" Type="int"/>
+      <Input Name="forum_title" Type="nvarchar" Size="15"/>
+      <Input Name="forum_text" Type="nvarchar" Size="50"/>
+    </Parameter>
+  </Insert>
+
+  <!-- 取得 -->
+  <Get>
+    <Statement>
+      <![CDATA[
+         SELECT '#' + RIGHT('000' + CAST(F.[forum_id] AS VARCHAR(3)), 3) AS forum_id,
+                IIF(U.[delete_flg] = '0', U.[name], N'_退会済みユーザ_') AS name,
+                FORMAT(F.[date_created], 'yyyy-MM-dd HH:mm:ss') AS date_created,
+                F.[forum_title],
+                F.[forum_text],
+                U.[user_id] AS user_id
+           FROM [dbo].[Forum] AS F
+     INNER JOIN [dbo].[User] AS U
+             ON F.[user_id] = U.[user_id]
+          WHERE F.[delete_flg] = '0'
+       ORDER BY F.[forum_id]
+         OFFSET @offset ROWS FETCH NEXT @page_size ROWS ONLY
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="offset" Type="int"/>
+      <Input Name="page_size" Type="int"/>
+    </Parameter>
+  </Get>
+
+  <!-- 取得 -->
+  <Get_ById>
+    <Statement>
+      <![CDATA[
+         SELECT U.[name] AS name,
+                F.*
+           FROM [dbo].[Forum] AS F
+     INNER JOIN [dbo].[User] AS U
+             ON F.[user_id] = U.[user_id]
+          WHERE F.[forum_id] = @forum_id AND F.[delete_flg] = '0'
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+    </Parameter>
+  </Get_ById>
+
+  <!-- 個数の取得 -->
+  <Get_Count>
+    <Statement>
+      <![CDATA[
+        SELECT COUNT(*)
+          FROM [dbo].[Forum]
+         WHERE [delete_flg] = '0'
+      ]]>
+    </Statement>
+  </Get_Count>
+  
+  <!-- 編集 -->
+  <Update>
+    <Statement>
+      <![CDATA[
+       UPDATE [dbo].[Forum]
+          SET [forum_title] = @forum_title, [forum_text] = @forum_text, [date_changed] = getdate()
+        WHERE [forum_id] = @forum_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+      <Input Name="forum_title" Type="nvarchar" Size="15"/>
+      <Input Name="forum_text" Type="nvarchar" Size="50"/>
+    </Parameter>
+  </Update>
+
+  <!-- 削除 -->
+  <Delete>
+    <Statement>
+      <![CDATA[
+        UPDATE [dbo].[Forum]
+           SET [delete_flg] = '1'
+         WHERE [forum_id] = @forum_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+    </Parameter>
+  </Delete>
+  
+</Forum>

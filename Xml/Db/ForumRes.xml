@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<ForumRes>
+  
+  <!-- 登録 -->
+  <Insert>
+    <Statement>
+      <![CDATA[
+      BEGIN
+          SET NOCOUNT ON;
+
+          -- 同じ forum_id に対して並行して挿入が起こっても競合しないように、
+          -- 一貫したスナップショットを取得し、必要な行をロックする
+          SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+          BEGIN TRAN;
+          BEGIN TRY
+            DECLARE @next_id int;
+
+            -- この forum_id の範囲をロックして、同時に 2 つのセッションが
+            -- 同じ次の番号を選ばないようにする
+            SELECT @next_id = ISNULL(MAX(FR.[forum_res_id]), 0) + 1
+            FROM [dbo].[ForumRes] AS FR WITH (UPDLOCK, HOLDLOCK)
+            WHERE FR.[forum_id] = @forum_id;
+
+            INSERT INTO [dbo].[ForumRes] ([forum_res_id], [forum_id], [user_id], [forum_res_title], [forum_res_text])
+            VALUES (@next_id, @forum_id, @user_id, @forum_res_title, @forum_res_text);
+
+            COMMIT TRAN;
+          END TRY
+          BEGIN CATCH
+            IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+            THROW;
+          END CATCH
+      END
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+      <Input Name="user_id" Type="int"/>
+      <Input Name="forum_res_title" Type="nvarchar" Size="15"/>
+      <Input Name="forum_res_text" Type="nvarchar" Size="50"/>
+    </Parameter>
+  </Insert>
+
+  <Update>
+    <Statement>
+      <![CDATA[
+        UPDATE [dbo].[ForumRes]
+          SET [forum_res_title] = @forum_res_title, [forum_res_text] = @forum_res_text, [date_changed] = getdate()
+        WHERE [forum_res_id] = @forum_res_id AND [forum_id] = @forum_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_res_id" Type="int"/>
+      <Input Name="forum_id" Type="int"/>
+      <Input Name="forum_res_title" Type="nvarchar" Size="15"/>
+      <Input Name="forum_res_text" Type="nvarchar" Size="50"/>
+    </Parameter>
+  </Update>
+  
+  <!-- 取得 -->
+  <Get>
+    <Statement>
+    <![CDATA[
+         SELECT '#' + RIGHT('#000' + CAST(FR.[forum_res_id] AS VARCHAR(3)), 3) AS forum_res_id,
+                IIF(U.[delete_flg] = '0', U.[name], N'_退会済みユーザ_') AS name,
+                FORMAT(FR.[date_created], 'yyyy-MM-dd HH:mm:ss') AS date_created,
+                FR.[forum_res_title],
+                FR.[forum_res_text]
+           FROM [dbo].[ForumRes] AS FR
+     INNER JOIN [dbo].[Forum] AS F
+             ON FR.[forum_id] = F.[forum_id]
+     INNER JOIN [dbo].[User] AS U
+             ON FR.[user_id] = U.[user_id]
+          WHERE FR.[forum_id] = @forum_id AND FR.[delete_flg] = '0'
+       ORDER BY FR.[date_created] ASC
+         OFFSET @offset ROWS FETCH NEXT 3 ROWS ONLY
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="user_id" Type="int"/>
+      <Input Name="forum_id" Type="int"/>
+      <Input Name="offset" Type="int"/>
+    </Parameter>
+  </Get>
+
+  <!-- 個数の取得 -->
+  <Get_Count>
+    <Statement>
+      <![CDATA[
+        SELECT COUNT(*)
+          FROM [dbo].[ForumRes]
+         WHERE [forum_id] = @forum_id AND [delete_flg] = '0'
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+    </Parameter>
+  </Get_Count>
+  
+  <!-- IDによる取得 -->
+  <Get_ById>
+    <Statement>
+      <![CDATA[
+       SELECT *
+         FROM [dbo].[ForumRes]
+        WHERE [forum_id] = @forum_id AND [forum_res_id] = @forum_res_id AND [delete_flg] = '0'
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_id" Type="int"/>
+      <Input Name="forum_res_id" Type="int"/>
+    </Parameter>
+  </Get_ById>
+  
+  <!-- 削除 -->
+  <Delete>
+    <Statement>
+      <![CDATA[
+      UPDATE [dbo].[ForumRes]
+         SET [delete_flg] = '1'
+       WHERE [forum_res_id] = @forum_res_id AND [forum_id] = @forum_id
+      ]]>
+    </Statement>
+    <Parameter>
+      <Input Name="forum_res_id" Type="int"/>
+      <Input Name="forum_id" Type="int"/>
+    </Parameter>
+  </Delete>
+
+</ForumRes>

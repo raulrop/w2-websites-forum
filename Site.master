@@ -1,0 +1,54 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Site.master.cs" Inherits="Site" %>
+
+<!DOCTYPE html>
+
+<html>
+<head runat="server">
+    <title><%: Page.Title %></title>
+    <link rel="stylesheet" href="~/styles/forum_top.css" />
+    <asp:ContentPlaceHolder id="HeadContent" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <form id="form" runat="server">
+    <h1 class="title">掲示板課題</h1>
+    <div>
+        <ul class="navbar">
+            <li>
+            <asp:Button runat="server" ID="btnUserModify" UseSubmitBehavior="false" CausesValidation="false" OnClick="btnUserModify_Click" Text="会員情報変更" CssClass="button"/>
+            </li>
+            <li>
+            <asp:Button runat="server" ID="btnUserWithdrawal" UseSubmitBehavior="false" CausesValidation="false" OnClick="btnUserWithdrawal_Click" Text="会員退会" CssClass="button" />
+            </li>
+            <li>
+            <asp:Button runat="server" ID="btnLogOut" UseSubmitBehavior="false" CausesValidation="false" OnClick="btnLogOut_Click" Text="ログアウト" CssClass="button" />
+            </li>
+        </ul>
+    </div>
+    <hr />
+    <h2 style="font-size: 25px; display:flex; justify-content:center; margin: 0px;"><%: Page.Title %></h2>
+    <br />
+    <asp:ContentPlaceHolder id="MainContent" runat="server"></asp:ContentPlaceHolder>
+    </form>
+
+<script>
+    function tbTitle_lengthClient(sender, args) {
+        try {
+            var value = args.Value;
+            args.IsValid = (value.length <= 15);
+        } catch (e) {
+            args.IsValid = false;
+        }
+    }
+    function tbBody_lengthClient(sender, args) {
+        try {
+            var value = args.Value;
+            args.IsValid = (value.length <= 50);
+        } catch (e) {
+            args.IsValid = false;
+        }
+    }
+</script>
+
+</body>
+</html>
