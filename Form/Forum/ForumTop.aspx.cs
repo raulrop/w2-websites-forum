@@ -623,7 +623,11 @@ public partial class Form_Forum_ForumTop : System.Web.UI.Page
 			// forum_idとforum_res_idによるForumRes列の取得
 			var forumres_data = Get_ForumResByID((int)forum_id, (int)forum_res_id);
 
-			if ((int)forumres_data["user_id"] == (int)ht["user_id"])
+			if (ht == null) 
+			{
+				Response.Redirect("~/Default.aspx");
+			}
+			else if ((int)forumres_data["user_id"] == (int)ht["user_id"])
 			{
 				lnkResEdit.Visible = true;
 
@@ -1210,5 +1214,6 @@ public partial class Form_Forum_ForumTop : System.Web.UI.Page
 			return (dv.Count != 0) ? dv[0] : null;
 		}
 	}
+
 
 }
